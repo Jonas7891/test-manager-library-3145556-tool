@@ -57,9 +57,9 @@ ADMIN_PASSWORD=<la del .env> node seed/load.mjs
 
 ```text
 Vencidos: 3
-  Cien años de soledad · Ana María Gómez · 6 día(s)
-  El principito · Luisa Fernanda Torres · 6 día(s)
-  Cosmos · Carlos Andrés Ruiz · 6 día(s)
+  Charlie y la fábrica de chocolate · Isabella Quintero Mejía · 6 día(s)
+  Crónica de una muerte anunciada · Mariana Salazar Ortiz · 6 día(s)
+  El hombre que confundió a su mujer con un sombrero · Sebastián Rojas Cárdenas · 6 día(s)
 Filas del reporte (2026-09-03 a 2026-10-13): 12
-  4 × Cien años de soledad (Novela)
+  4 × Crónica de una muerte anunciada (Novela)
 ```

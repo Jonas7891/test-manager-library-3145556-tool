@@ -47,7 +47,7 @@ async function ensureCatalog(admin) {
   let n = 0;
   for (const [i, b] of books.entries()) {
     const r = await call('POST', '/books', admin, {
-      title: b.title, author: b.author, isbn: isbn(i + 1), category_id: categories[b.category], total_copies: b.copies,
+      title: b.title, author: b.author, isbn: isbn(i + 101), category_id: categories[b.category], total_copies: b.copies,
     });
     if (r.status === 201) n++;
     else if (r.data.code !== 'ISBN_TAKEN') throw new Error(`Libro «${b.title}»: ${r.data.message}`);
@@ -83,9 +83,9 @@ async function past() {
   await ensureCatalog(admin);
   const lib = await login(LIBRARIAN);
   console.log('Préstamos en el pasado (quedarán vencidos):');
-  await lend(lib, members[0].document_number, ['Cien años de soledad']);
-  await lend(lib, members[1].document_number, ['Cosmos']);
-  await lend(lib, members[2].document_number, ['El principito']);
+  await lend(lib, members[0].document_number, [books[0].title]);
+  await lend(lib, members[1].document_number, [books[12].title]);
+  await lend(lib, members[2].document_number, [books[33].title]);
 }
 
 async function now() {
