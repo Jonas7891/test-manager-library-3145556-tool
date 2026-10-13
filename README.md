@@ -42,6 +42,17 @@ ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --check
 Variables: `API_URL` (por defecto `http://localhost:8000/api/v1`), `ADMIN_USERNAME` (por defecto `admin`), `ADMIN_PASSWORD`
 (obligatoria) y `LIBRARIAN_PASSWORD` (opcional). Ver `.env.example`.
 
+## Prueba de carga de RNF-1
+
+`seed/load.mjs` completa el catálogo hasta 5 000 libros **por la API** y mide 60 búsquedas de `GET /books` (con texto, con
+categoría, sin resultados). Termina con código 1 si el p95 supera 300 ms. Úsese en un entorno desechable y después
+`docker compose down -v` en `infra`.
+
+```bash
+ADMIN_PASSWORD=<la del .env> node seed/load.mjs
+# Corrida del 13-10-2026: Búsquedas: 60 · p50 28.9 ms · p95 58.3 ms · máx 66.8 ms (límite 300 ms) → RNF-1 cumple
+```
+
 ## Evidencia (corrida del 13-10-2026)
 
 ```text
