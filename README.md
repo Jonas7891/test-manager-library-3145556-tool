@@ -20,7 +20,7 @@ Es idempotente para libros, socios y bibliotecario: si ya existen, la API respon
 
 La API pone `loaned_at` con su propio reloj y el contrato no permite enviar una fecha. Para que existan préstamos **vencidos**
 creados por la API, la primera fase se corre con la API levantada con `CLOCK_OFFSET_DAYS=-20`. Ver
-`test-manager-library-3145556-docs/spec-laravel/adr/adr-006-reloj-desplazable-para-el-sembrador.md`.
+`test-manager-library-3145556-docs/spec-laravel/adr/adr-006-shiftable-clock-for-the-seeder.md`.
 
 ## Uso (Node 20+, sin dependencias)
 
