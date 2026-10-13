@@ -1,50 +1,54 @@
 # test-manager-library-3145556-tool
 
-> **Prueba técnica · Ficha ADSO 3145556**
-> Entrega: **martes 13 de octubre de 2026, a las 5:00 p. m.** (17:00, hora Colombia).
+> **Prueba técnica · Ficha ADSO 3145556**: utilidades de *Manager Library*. Contiene el **sembrador de datos de demostración**
+> (T-21), que **usa solo la API** y nunca SQL directo (`data-model.md` §9).
 
-Este repositorio guarda las **utilidades** de *Manager Library*: el sembrador de datos de demostración, que usa la API. **Empieza vacío a propósito**: se construye en el fork de cada aprendiz.
+## Qué siembra
 
-## Instrucciones
+| Dato | Cantidad | Origen |
+|---|---|---|
+| Bibliotecario de demostración | 1 (`bibliotecario.demo`) | `POST /users` |
+| Libros | 40, en las 5 categorías, con ISBN-13 válido | `seed/data/books.json` → `POST /books` |
+| Socios | 10 | `seed/data/members.json` → `POST /members` |
+| Préstamos | 15 (3 quedan vencidos) | `POST /loans` |
+| Devoluciones | 4 | `POST /loans/{id}/items/{item}/return` |
 
-Cada aprendiz debe **crear el fork** de los seis repositorios del proyecto y **resolver el proyecto
-con el spec planteado**.
+Es idempotente para libros, socios y bibliotecario: si ya existen, la API responde `ISBN_TAKEN`, `DOCUMENT_TAKEN` o
+`USERNAME_TAKEN` y el sembrador sigue. Los préstamos sí se repiten si se vuelve a correr.
 
-1. Hacer fork, a su cuenta de GitHub, de cada repositorio de la tabla del final.
-2. Leer el spec en [`test-manager-library-3145556-docs`](https://github.com/code-sena/test-manager-library-3145556-docs).
-   Se entrega en dos versiones: `spec-python/` y `spec-.net/`.
-3. Desarrollar en los forks.
+## Por qué hay dos fases (ADR-006)
 
-## El reto se desarrolla con React y PHP (Laravel)
+La API pone `loaned_at` con su propio reloj y el contrato no permite enviar una fecha. Para que existan préstamos **vencidos**
+creados por la API, la primera fase se corre con la API levantada con `CLOCK_OFFSET_DAYS=-20`. Ver
+`test-manager-library-3145556-docs/spec-laravel/adr/adr-006-reloj-desplazable-para-el-sembrador.md`.
 
-El spec está escrito para Python y para .NET, pero el reto **no** se hace en esos lenguajes:
+## Uso (Node 20+, sin dependencias)
 
-| Capa | Tecnología del reto |
-|---|---|
-| Frontend | React |
-| Backend | PHP con Laravel |
+Con `infra` levantado (`docker compose up -d --build`):
 
-Lo que el spec define sobre el negocio —historias, criterios de aceptación, reglas, contrato de la
-API, modelo de datos— se respeta. Lo que define sobre la tecnología se traduce a React y Laravel.
+```bash
+# Fase 1: API 20 días en el pasado → 3 préstamos que quedarán vencidos
+cd ../test-manager-library-3145556-infra && CLOCK_OFFSET_DAYS=-20 docker compose up -d api
+cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --phase past
 
-## La prueba no consiste en escribir el código
+# Fase 2: API en la hora real → 12 préstamos más y 4 devoluciones
+cd ../test-manager-library-3145556-infra && CLOCK_OFFSET_DAYS=0 docker compose up -d api
+cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --phase now
 
-El propósito principal es ver la **capacidad de desempeño con SDD** (*Spec-Driven Development*,
-desarrollo guiado por especificación): cómo se lee, se interpreta y se aplica una especificación
-para llevarla a un stack distinto. El código es el medio, no el fin.
+# Evidencia de T-21: debe decir "Vencidos: 3" y mostrar filas del reporte
+ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --check
+```
 
-## Entrega
+Variables: `API_URL` (por defecto `http://localhost:8000/api/v1`), `ADMIN_USERNAME` (por defecto `admin`), `ADMIN_PASSWORD`
+(obligatoria) y `LIBRARIAN_PASSWORD` (opcional). Ver `.env.example`.
 
-Cuenta lo que quede **subido a los forks antes de las 5:00 p. m.** (17:00). Lo que llegue después no se revisa.
-No hay prórroga: suban avances parciales con commits pequeños durante la prueba.
+## Evidencia (corrida del 13-10-2026)
 
-## Los seis repositorios
-
-| Repositorio | Qué va ahí |
-|---|---|
-| [`test-manager-library-3145556-docs`](https://github.com/code-sena/test-manager-library-3145556-docs) | El spec: `spec-python/` y `spec-.net/` |
-| [`test-manager-library-3145556-api`](https://github.com/code-sena/test-manager-library-3145556-api) | Backend en PHP (Laravel) |
-| [`test-manager-library-3145556-app`](https://github.com/code-sena/test-manager-library-3145556-app) | Frontend en React |
-| [`test-manager-library-3145556-page`](https://github.com/code-sena/test-manager-library-3145556-page) | Sitio público estático de presentación |
-| [`test-manager-library-3145556-infra`](https://github.com/code-sena/test-manager-library-3145556-infra) | Contenedores, red, volúmenes y motor de base de datos vacío |
-| [`test-manager-library-3145556-tool`](https://github.com/code-sena/test-manager-library-3145556-tool) | Utilidades: sembrador de datos de demostración |
+```text
+Vencidos: 3
+  Cien años de soledad · Ana María Gómez · 6 día(s)
+  El principito · Luisa Fernanda Torres · 6 día(s)
+  Cosmos · Carlos Andrés Ruiz · 6 día(s)
+Filas del reporte (2026-09-03 a 2026-10-13): 12
+  4 × Cien años de soledad (Novela)
+```
