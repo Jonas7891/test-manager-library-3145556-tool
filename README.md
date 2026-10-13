@@ -1,59 +1,67 @@
 # test-manager-library-3145556-tool
 
-> **Prueba técnica · Ficha ADSO 3145556**: utilidades de *Manager Library*. Contiene el **sembrador de datos de demostración**
-> (T-21), que **usa solo la API** y nunca SQL directo (`data-model.md` §9).
+> **Technical test · ADSO group 3145556**: *Manager Library* utilities. It holds the **demo data seeder** (T-21), which
+> **uses only the API** and never direct SQL (`data-model.md` §9).
 
-## Qué siembra
+## What it seeds
 
-| Dato | Cantidad | Origen |
+| Data | Amount | Source |
 |---|---|---|
-| Bibliotecario de demostración | 1 (`LIBRARIAN_USERNAME`, por defecto `Juan Diego`) | `POST /users` |
-| Libros | 40, en las 5 categorías, con ISBN-13 válido | `seed/data/books.json` → `POST /books` |
-| Socios | 10 | `seed/data/members.json` → `POST /members` |
-| Préstamos | 15 (3 quedan vencidos) | `POST /loans` |
-| Devoluciones | 4 | `POST /loans/{id}/items/{item}/return` |
+| Demo librarian | 1 (`LIBRARIAN_USERNAME`, default `Juan Diego`) | `POST /users` |
+| Books | 40, across the 5 categories, with valid ISBN-13 | `seed/data/books.json` → `POST /books` |
+| Members | 10 | `seed/data/members.json` → `POST /members` |
+| Loans | 15 (3 end up overdue) | `POST /loans` |
+| Returns | 4 | `POST /loans/{id}/items/{item}/return` |
 
-Es idempotente para libros, socios y bibliotecario: si ya existen, la API responde `ISBN_TAKEN`, `DOCUMENT_TAKEN` o
-`USERNAME_TAKEN` y el sembrador sigue. Los préstamos sí se repiten si se vuelve a correr.
+Books, members and the librarian are idempotent: if they already exist, the API answers `ISBN_TAKEN`, `DOCUMENT_TAKEN` or
+`USERNAME_TAKEN` and the seeder carries on. Loans are created again on every run.
 
-## Por qué hay dos fases (ADR-006)
+The demo data and the console output are in Spanish because users see them (ADR-015).
 
-La API pone `loaned_at` con su propio reloj y el contrato no permite enviar una fecha. Para que existan préstamos **vencidos**
-creados por la API, la primera fase se corre con la API levantada con `CLOCK_OFFSET_DAYS=-20`. Ver
+## Why there are two phases (ADR-006)
+
+The API sets `loaned_at` with its own clock, and the contract does not allow sending a date. For loans created by the API to be
+**overdue**, the first phase runs with the API started with `CLOCK_OFFSET_DAYS=-20`. See
 `test-manager-library-3145556-docs/spec-laravel/adr/adr-006-shiftable-clock-for-the-seeder.md`.
 
-## Uso (Node 20+, sin dependencias)
+## Usage (Node 20+, no dependencies)
 
-Con `infra` levantado (`docker compose up -d --build`):
+With `infra` running (`docker compose up -d --build`):
 
 ```bash
-# Fase 1: API 20 días en el pasado → 3 préstamos que quedarán vencidos
+# Phase 1: API 20 days in the past → 3 loans that will be overdue
 cd ../test-manager-library-3145556-infra && CLOCK_OFFSET_DAYS=-20 docker compose up -d api
-cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> LIBRARIAN_PASSWORD=<la del .env> node seed/seed.mjs --phase past
+cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<from .env> LIBRARIAN_PASSWORD=<from .env> node seed/seed.mjs --phase past
 
-# Fase 2: API en la hora real → 12 préstamos más y 4 devoluciones
+# Phase 2: API on real time → 12 more loans and 4 returns
 cd ../test-manager-library-3145556-infra && CLOCK_OFFSET_DAYS=0 docker compose up -d api
-cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> LIBRARIAN_PASSWORD=<la del .env> node seed/seed.mjs --phase now
+cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<from .env> LIBRARIAN_PASSWORD=<from .env> node seed/seed.mjs --phase now
 
-# Evidencia de T-21: debe decir "Vencidos: 3" y mostrar filas del reporte
-ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --check
+# T-21 evidence: it must say "Vencidos: 3" and list report rows
+ADMIN_PASSWORD=<from .env> node seed/seed.mjs --check
 ```
 
-Variables: `API_URL` (por defecto `http://localhost:8000/api/v1`), `ADMIN_USERNAME` (por defecto `Jonas7891`), `ADMIN_PASSWORD`
-(obligatoria), `LIBRARIAN_USERNAME` (por defecto `Juan Diego`) y `LIBRARIAN_PASSWORD` (obligatoria en `past` y `now`). Las contraseñas solo van en el `.env` local de `infra` (ADR-014). Ver `.env.example`.
+Variables:
+- `API_URL`: default `http://localhost:8000/api/v1`;
+- `ADMIN_USERNAME`: default `Jonas7891`;
+- `ADMIN_PASSWORD`: required;
+- `LIBRARIAN_USERNAME`: default `Juan Diego`;
+- `LIBRARIAN_PASSWORD`: required for `past` and `now`.
 
-## Prueba de carga de RNF-1
+Passwords go only in the local `infra` `.env` (ADR-014). See `.env.example`.
 
-`seed/load.mjs` completa el catálogo hasta 5 000 libros **por la API** y mide 60 búsquedas de `GET /books` (con texto, con
-categoría, sin resultados). Termina con código 1 si el p95 supera 300 ms. Úsese en un entorno desechable y después
-`docker compose down -v` en `infra`.
+## RNF-1 load test
+
+`seed/load.mjs` fills the catalogue up to 5,000 books **through the API** and times 60 `GET /books` searches (with text, with a
+category and with no results). It exits with code 1 if the p95 goes over 300 ms. Run it on a throwaway environment, then run
+`docker compose down -v` in `infra`.
 
 ```bash
-ADMIN_PASSWORD=<la del .env> node seed/load.mjs
-# Corrida del 13-10-2026: Búsquedas: 60 · p50 28.9 ms · p95 58.3 ms · máx 66.8 ms (límite 300 ms) → RNF-1 cumple
+ADMIN_PASSWORD=<from .env> node seed/load.mjs
+# Run of 13-10-2026: Búsquedas: 60 · p50 28.9 ms · p95 58.3 ms · máx 66.8 ms (límite 300 ms) → RNF-1 met
 ```
 
-## Evidencia (corrida del 13-10-2026)
+## Evidence (run of 13-10-2026)
 
 ```text
 Vencidos: 3
