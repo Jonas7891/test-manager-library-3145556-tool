@@ -9,8 +9,8 @@
 import { readFileSync } from 'node:fs';
 
 const API = process.env.API_URL ?? 'http://localhost:8000/api/v1';
-const ADMIN = { username: process.env.ADMIN_USERNAME ?? 'admin', password: process.env.ADMIN_PASSWORD };
-const LIBRARIAN = { username: 'bibliotecario.demo', password: process.env.LIBRARIAN_PASSWORD ?? 'Demo-Biblio-2026' };
+const ADMIN = { username: process.env.ADMIN_USERNAME ?? 'Jonas7891', password: process.env.ADMIN_PASSWORD };
+const LIBRARIAN = { username: process.env.LIBRARIAN_USERNAME ?? 'Juan Diego', password: process.env.LIBRARIAN_PASSWORD };
 
 const books = JSON.parse(readFileSync(new URL('./data/books.json', import.meta.url)));
 const members = JSON.parse(readFileSync(new URL('./data/members.json', import.meta.url)));
@@ -121,8 +121,8 @@ async function check() {
 }
 
 const run = { past, now, check }[phase];
-if (!run || !ADMIN.password) {
-  console.error('Uso: ADMIN_PASSWORD=... node seed/seed.mjs --phase past|now  ó  --check');
+if (!run || !ADMIN.password || (phase !== 'check' && !LIBRARIAN.password)) {
+  console.error('Uso: ADMIN_PASSWORD=... LIBRARIAN_PASSWORD=... node seed/seed.mjs --phase past|now  ó  --check');
   process.exit(2);
 }
 run().catch((e) => {

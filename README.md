@@ -7,7 +7,7 @@
 
 | Dato | Cantidad | Origen |
 |---|---|---|
-| Bibliotecario de demostración | 1 (`bibliotecario.demo`) | `POST /users` |
+| Bibliotecario de demostración | 1 (`LIBRARIAN_USERNAME`, por defecto `Juan Diego`) | `POST /users` |
 | Libros | 40, en las 5 categorías, con ISBN-13 válido | `seed/data/books.json` → `POST /books` |
 | Socios | 10 | `seed/data/members.json` → `POST /members` |
 | Préstamos | 15 (3 quedan vencidos) | `POST /loans` |
@@ -29,18 +29,18 @@ Con `infra` levantado (`docker compose up -d --build`):
 ```bash
 # Fase 1: API 20 días en el pasado → 3 préstamos que quedarán vencidos
 cd ../test-manager-library-3145556-infra && CLOCK_OFFSET_DAYS=-20 docker compose up -d api
-cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --phase past
+cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> LIBRARIAN_PASSWORD=<la del .env> node seed/seed.mjs --phase past
 
 # Fase 2: API en la hora real → 12 préstamos más y 4 devoluciones
 cd ../test-manager-library-3145556-infra && CLOCK_OFFSET_DAYS=0 docker compose up -d api
-cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --phase now
+cd ../test-manager-library-3145556-tool  && ADMIN_PASSWORD=<la del .env> LIBRARIAN_PASSWORD=<la del .env> node seed/seed.mjs --phase now
 
 # Evidencia de T-21: debe decir "Vencidos: 3" y mostrar filas del reporte
 ADMIN_PASSWORD=<la del .env> node seed/seed.mjs --check
 ```
 
-Variables: `API_URL` (por defecto `http://localhost:8000/api/v1`), `ADMIN_USERNAME` (por defecto `admin`), `ADMIN_PASSWORD`
-(obligatoria) y `LIBRARIAN_PASSWORD` (opcional). Ver `.env.example`.
+Variables: `API_URL` (por defecto `http://localhost:8000/api/v1`), `ADMIN_USERNAME` (por defecto `Jonas7891`), `ADMIN_PASSWORD`
+(obligatoria), `LIBRARIAN_USERNAME` (por defecto `Juan Diego`) y `LIBRARIAN_PASSWORD` (obligatoria en `past` y `now`). Las contraseñas solo van en el `.env` local de `infra` (ADR-014). Ver `.env.example`.
 
 ## Prueba de carga de RNF-1
 

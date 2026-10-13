@@ -24,7 +24,7 @@ function isbn(n) {
   return base + ((10 - (sum % 10)) % 10);
 }
 
-const login = await call('POST', '/auth/login', null, { username: process.env.ADMIN_USERNAME ?? 'admin', password: process.env.ADMIN_PASSWORD });
+const login = await call('POST', '/auth/login', null, { username: process.env.ADMIN_USERNAME ?? 'Jonas7891', password: process.env.ADMIN_PASSWORD });
 if (login.status !== 200) throw new Error('No se pudo iniciar sesión como admin');
 const token = login.data.access_token;
 const categories = (await call('GET', '/categories', token)).data;
