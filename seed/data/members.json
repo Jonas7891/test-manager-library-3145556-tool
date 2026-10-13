@@ -1,0 +1,12 @@
+[
+  { "full_name": "Ana María Gómez", "document_number": "1010101001" },
+  { "full_name": "Carlos Andrés Ruiz", "document_number": "1010101002" },
+  { "full_name": "Luisa Fernanda Torres", "document_number": "1010101003" },
+  { "full_name": "Jorge Iván Martínez", "document_number": "1010101004" },
+  { "full_name": "Valentina Ríos", "document_number": "1010101005" },
+  { "full_name": "Santiago Herrera", "document_number": "1010101006" },
+  { "full_name": "Daniela Castro", "document_number": "1010101007" },
+  { "full_name": "Andrés Felipe López", "document_number": "1010101008" },
+  { "full_name": "Camila Moreno", "document_number": "1010101009" },
+  { "full_name": "Juan Pablo Vargas", "document_number": "1010101010" }
+]
