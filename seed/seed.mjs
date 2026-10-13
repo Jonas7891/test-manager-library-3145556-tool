@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Sembrador de demostración de Manager Library (T-21).
-// Usa SOLO la API (data-model.md §9): nunca SQL directo.
+// Manager Library demo seeder (T-21).
+// Uses ONLY the API (data-model.md §9): never direct SQL.
 //
-//   node seed/seed.mjs --phase past   # con la API en CLOCK_OFFSET_DAYS=-20 (ADR-006): 3 préstamos que quedarán vencidos
-//   node seed/seed.mjs --phase now    # con la API en CLOCK_OFFSET_DAYS=0: 12 préstamos más y algunas devoluciones
-//   node seed/seed.mjs --check        # comprueba la evidencia: 3 vencidos y reporte con filas
+//   node seed/seed.mjs --phase past   # API on CLOCK_OFFSET_DAYS=-20 (ADR-006): 3 loans that will be overdue
+//   node seed/seed.mjs --phase now    # API on CLOCK_OFFSET_DAYS=0: 12 more loans and some returns
+//   node seed/seed.mjs --check        # checks the evidence: 3 overdue lines and report rows
 
 import { readFileSync } from 'node:fs';
 
@@ -32,7 +32,7 @@ async function login({ username, password }) {
   return data.access_token;
 }
 
-// ISBN-13 válido y determinista para cada libro (prefijo 978 + índice + dígito de control).
+// Valid, deterministic ISBN-13 for each book (prefix 978 + index + check digit).
 function isbn(index) {
   const base = `978${String(100000000 + index).slice(1).padStart(9, '0')}`;
   const sum = [...base].reduce((acc, d, i) => acc + Number(d) * (i % 2 ? 3 : 1), 0);

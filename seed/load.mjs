@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Prueba de carga de RNF-1: «la búsqueda de libros responde en menos de 300 ms con 5 000 libros».
-// Completa el catálogo hasta 5 000 libros POR LA API y mide GET /books con varias búsquedas.
-// Úsese en un entorno desechable: después, `docker compose down -v` en infra y volver a sembrar.
+// RNF-1 load test: "book search answers in under 300 ms with 5,000 books".
+// Fills the catalogue up to 5,000 books THROUGH THE API and times several GET /books searches.
+// Use a throwaway environment: afterwards run `docker compose down -v` in infra and seed again.
 //
 //   ADMIN_PASSWORD=... node seed/load.mjs
 
